@@ -2,7 +2,7 @@ import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Form } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const sampleTodos = [
     { title: "Buy groceries", done: false },
@@ -16,23 +16,42 @@ function sortTodos(todos) {
     return todos;
 }
 
-export default function TodoList() {
-    const [todos, setTodos] = useState(sampleTodos)
+function getTodos() {
+    const todos = localStorage["todos"];
+    if (todos) return JSON.parse(todos);
+    return sampleTodos;
+}
 
+export default function TodoList() {
+    const [todos, setTodos] = useState([])
     const [title, setTitle] = useState("")
+
+    useEffect(() => {
+        // 2. parametre boş dizi olduğu için sadece ilk renderda çalışır
+        setTodos(getTodos());
+    }, []);
+
+    const save = (data) => localStorage["todos"] = JSON.stringify(data);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        setTodos(sortTodos([...todos, { title, done: false }]))
+        let newTodos = sortTodos([...todos, { title, done: false }]);
+        setTodos(newTodos);
         setTitle("");
+        save(newTodos);
     }
 
-    const deleteTodo = (index) => setTodos(todos.filter((todo, i) => i !== index));
+    const deleteTodo = (index) => {
+        let newTodos = todos.filter((todo, i) => i !== index)
+        setTodos(newTodos);
+        save(newTodos);
+    }
 
     const updateDone = (e, index) => {
         const newTodos = [...todos];
         newTodos[index].done = e.target.checked;
         setTodos(sortTodos(newTodos));
+        save(newTodos);
     }
 
 
